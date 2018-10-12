@@ -4,15 +4,18 @@ const bodyParser = require('body-parser');
 const {
     ObjectId
 } = require('mongodb');
-var {
+const {
     mongoose
 } = require('./db/mongoose');
-var {
+const {
     Todo
 } = require('./models/todo');
-var {
+const {
     User
 } = require('./models/user');
+const {
+    authenticate
+} = require('./middleware/auth')
 
 var app = express();
 const port = process.env.PORT || 3001;
@@ -86,12 +89,14 @@ app.patch('/todos/:id', (req, res) => {
     Todo.findByIdAndUpdate(id, {
         $set: body
     }, {
-        new:true
+        new: true
     }).then((todo) => {
-        if (!todo){
+        if (!todo) {
             return res.status(404).send();
         }
-        res.send({todo})
+        res.send({
+            todo
+        })
     }).catch((e) => {
         res.status(400).send();
     })
@@ -108,6 +113,11 @@ app.post('/users/', (req, res) => {
     }).catch((e) => {
         res.status(400).send(e);
     })
+})
+
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+
 })
 app.listen(port, () => {
     console.log(`Server is up on port ${port}`);
